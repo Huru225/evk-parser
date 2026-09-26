@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>帮助 - Evk Parser</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        body { max-width: 800px; margin: 0 auto; padding: 20px; }
+        h1 { font-size: 20px; margin-bottom: 20px; }
+        h2 { font-size: 16px; margin-top: 24px; margin-bottom: 8px; color: var(--accent); }
+        h3 { font-size: 14px; margin-top: 16px; margin-bottom: 6px; }
+        p, li { font-size: 13px; line-height: 1.6; color: var(--text-sec); }
+        ul { padding-left: 20px; }
+        li { margin-bottom: 4px; }
+        code { background: #f0f0f0; padding: 1px 4px; font-size: 12px; border-radius: 2px; }
+        pre { background: #f5f5f5; padding: 12px; font-size: 12px; overflow-x: auto; border-radius: 2px; }
+        table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        th, td { padding: 6px 10px; border: 1px solid var(--border); text-align: left; }
+        th { background: #f5f5f5; font-weight: 600; }
+        a { color: var(--accent); }
+        .back { margin-bottom: 16px; display: inline-block; font-size: 13px; }
+    </style>
+</head>
+<body>
+    <a class="back" href="index.html">← 返回</a>
+    <h1>帮助文档</h1>
+
+    <h2>解析 APK</h2>
+    <p>将唤境 (Evk) 游戏引擎导出的 APK 解压后，选择解压目录进行解析。</p>
+
+    <h3>源文件夹</h3>
+    <p>应包含 <code>assets/www/data.json</code> 的目录。通常是 APK 解压后的根目录。</p>
+
+    <h3>输出文件夹</h3>
+    <p>留空则默认输出到 <code>parsed_projects/源文件夹名/</code>。输出内容：</p>
+    <ul>
+        <li><code>project.json</code> — 项目元数据（精灵、动画、音频、布局）</li>
+        <li><code>sprites/</code> — 每帧一个 PNG 文件，命名格式: <code>{对象}_{动画}_{帧号}.png</code></li>
+        <li><code>audio/</code> — 音频文件（已恢复中文文件名）</li>
+    </ul>
+
+    <h3>数据结构</h3>
+    <p>唤境 data.json 的关键结构：</p>
+    <ul>
+        <li><code>project[3]</code> — 布局数组</li>
+        <li>每个布局的 <code>[7]</code> — 动画数组</li>
+        <li>每个动画的 <code>[7]</code> — 帧数组</li>
+        <li>每帧格式: <code>["assets/images/XXX.png", spriteId, x, y, w, h, scale, anchorX, anchorY, polygon, ...]</code></li>
+    </ul>
+    <p>其中 <code>x, y</code> 是在图集 (atlas) PNG 中的裁切坐标，<code>anchorX/Y</code> 是锚点归一化坐标 (0~1)。</p>
+
+    <h2>查看项目</h2>
+
+    <h3>动画播放器</h3>
+    <ul>
+        <li>左侧树形列表: 布局 → 对象 → 动画</li>
+        <li>点击动画名称播放</li>
+        <li>控制按钮: 上一帧 / 播放暂停 / 停止 / 下一帧 / 重置视图</li>
+        <li>速度选择: 0.25x ~ 4x</li>
+        <li>循环 / 锚点 / 碰撞体 可视化</li>
+    </ul>
+
+    <h3>画布操作</h3>
+    <ul>
+        <li><strong>中键拖拽</strong> — 平移画布</li>
+        <li><strong>滚轮</strong> — 缩放（围绕鼠标位置）</li>
+        <li><strong>双击</strong> — 重置视图到 100%</li>
+    </ul>
+
+    <h3>导出帧图</h3>
+    <p>点击播放器中的「导出帧图」按钮，会将当前动画的所有帧按锚点位置对齐后导出为 ZIP 文件。</p>
+    <p>每帧图片尺寸相同，锚点位于画布中心。适用于在其他工具中使用。</p>
+
+    <h3>对象搜索</h3>
+    <p>左侧树形列表顶部有搜索框，可按名称过滤对象和动画。</p>
+
+    <h2>API</h2>
+    <table>
+        <tr><th>方法</th><th>路径</th><th>说明</th></tr>
+        <tr><td>GET</td><td><code>/api/projects</code></td><td>已解析项目列表</td></tr>
+        <tr><td>GET</td><td><code>/api/project/:name</code></td><td>项目摘要</td></tr>
+        <tr><td>GET</td><td><code>/api/project/:name/sprites</code></td><td>精灵元数据</td></tr>
+        <tr><td>GET</td><td><code>/api/project/:name/animations</code></td><td>动画树</td></tr>
+        <tr><td>GET</td><td><code>/api/project/:name/audio</code></td><td>音频列表</td></tr>
+        <tr><td>POST</td><td><code>/api/parse</code></td><td>开始解析 <code>{source, output}</code></td></tr>
+        <tr><td>GET</td><td><code>/api/parse/status?jobKey=</code></td><td>轮询解析进度</td></tr>
+        <tr><td>GET</td><td><code>/api/file/:name/*</code></td><td>获取项目文件</td></tr>
+        <tr><td>POST</td><td><code>/api/export-frames</code></td><td>导出帧图为 ZIP</td></tr>
+        <tr><td>POST</td><td><code>/api/export-evk</code></td><td>导出为 evk 工程</td></tr>
+    </table>
+
+    <h2>环境变量</h2>
+    <table>
+        <tr><th>变量</th><th>默认值</th><th>说明</th></tr>
+        <tr><td><code>PORT</code></td><td>3000</td><td>服务器端口</td></tr>
+        <tr><td><code>PROJECTS_DIR</code></td><td>../parsed_projects</td><td>已解析项目存储目录</td></tr>
+        <tr><td><code>SOURCES_DIR</code></td><td>..</td><td>扫描 APK 源文件的根目录</td></tr>
+    </table>
+
+    <h2>依赖</h2>
+    <ul>
+        <li>Node.js ≥ 14</li>
+        <li>Python 3 + Pillow (<code>pip install Pillow</code>)</li>
+        <li>Express (npm install 自动安装)</li>
+    </ul>
+</body>
+</html>
